@@ -53,10 +53,17 @@ namespace Minecraft_Proxy_Detector
                         {
                             // Outputs new connections with position coordinates, and IP address with Port
                             s = match.Value;
+                            if (ConfigurationManager.AppSettings["Verbose"] == "true")
+                                Console.WriteLine(s);
 
                             // Removes the initial [/
                             s = s.Replace("[/", "");
-                            
+
+                            if (ConfigurationManager.AppSettings["Verbose"] == "true")
+                            {
+                                Console.WriteLine(s);
+                            }
+
                             if (proxy_checker(s) == ConfigurationManager.AppSettings["API_VALUE"])
                             {
                                 Console.ForegroundColor = ConsoleColor.Red;
@@ -66,7 +73,8 @@ namespace Minecraft_Proxy_Detector
                                 // Outputs possible VPN IP addresses to vpn.txt so that they can be reviewed.
                                 File.AppendAllText(output_location, (s + Environment.NewLine));
 
-                            } else if (ConfigurationManager.AppSettings["Verbose"] == "true")
+                            }
+                            else if (ConfigurationManager.AppSettings["Verbose"] == "true")
                             {
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 Console.WriteLine(s + " is likely not a Proxy or VPN!");
