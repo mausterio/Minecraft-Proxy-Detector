@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Net;
+using System.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace Minecraft_Proxy_Detector
@@ -16,20 +17,21 @@ namespace Minecraft_Proxy_Detector
                 try
                 {
                     // TODO: Add multiple API's so that if one goes down or rate limit hit, program is still functional.
-                    var json = client.DownloadString("https://ip.teoh.io/api/vpn/" + s);
+                    var json = client.DownloadString(ConfigurationManager.AppSettings["API_URL"] + s);
                     dynamic data = JObject.Parse(json);
                     // Returns whether using vpn or not
-                    return (data.vpn_or_proxy);  // vpn? yes / no
+                    // TODO: Find a way of allowing the configuration of data.[API_FIELD]
+                    return data.vpn_or_proxy;  // vpn? yes / no
                 } catch (Exception) {
-                    Console.WriteLine("API is not working and/or responding!");
+                    Console.WriteLine("Error: API is not working or is not responding!");
                     return "no";
                 }
             }
         }
         static void Main(string[] args)
         {
-            string log_location = "C:/Users/Administrator/Desktop/All+the+Mods+3+Remix+-+v1.3.0-Serverfiles-FULL/logs/latest.log";
-            string output_location = "C:/Users/Administrator/Desktop/vpn.txt";
+            string log_location = ConfigurationManager.AppSettings["LogLocation"];
+            string output_location = ConfigurationManager.AppSettings["OutputLocation"];
             var wh = new AutoResetEvent(false);
             var fsw = new FileSystemWatcher(".");
             fsw.Filter = log_location;
@@ -55,7 +57,7 @@ namespace Minecraft_Proxy_Detector
                             // Removes the initial [/
                             s = s.Replace("[/", "");
                             
-                            if (proxy_checker(s) == "yes")
+                            if (proxy_checker(s) == ConfigurationManager.AppSettings["API_VALUE"])
                             {
                                 Console.ForegroundColor = ConsoleColor.Red;
                                 Console.WriteLine(s + " is likely a Proxy or VPN!");
@@ -64,6 +66,11 @@ namespace Minecraft_Proxy_Detector
                                 // Outputs possible VPN IP addresses to vpn.txt so that they can be reviewed.
                                 File.AppendAllText(output_location, (s + Environment.NewLine));
 
+                            } else if (ConfigurationManager.AppSettings["Verbose"] == "true")
+                            {
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine(s + " is likely not a Proxy or VPN!");
+                                Console.ResetColor();
                             }
                         }
 
